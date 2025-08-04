@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartNutri AI - IBM Watson Nutrition Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.6rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            background: #f8f9fa;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover {
+            box-shadow: none;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .results-section h2 {
+            color: #4facfe;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        .nutrition-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .meal-plan {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .meal-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .meal-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .meal-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .meal-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .food-analysis {
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4f1d4 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border-left: 5px solid #4caf50;
+        }
+
+        .food-analysis h3 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .analysis-content {
+            color: #2e7d32;
+        }
+
+        .nutrition-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 10px;
+        }
+
+        .nutrition-item {
+            text-align: center;
+        }
+
+        .nutrition-item strong {
+            display: block;
+            font-size: 1.1rem;
+            color: #1b5e20;
+        }
+
+        .recommendations {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+        }
+
+        .recommendations h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+
+        .recommendation-item {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s ease;
+        }
+
+        .recommendation-item:hover {
+            transform: translateX(5px);
+        }
+
+        .recommendation-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .chat-container {
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            height: 450px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .user-message, .assistant-message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .assistant-message {
+            background: white;
+            border: 1px solid #e1e5e9;
+            margin-right: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .message-header {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 20px;
+            background: white;
+            border-radius: 0 0 15px 15px;
+            border-top: 1px solid #e1e5e9;
+            gap: 10px;
+        }
+
+        .chat-input-container input {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input-container input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .chat-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .chat-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 15px;
+            font-style: italic;
+            color: #666;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+            color: #c33;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4f1d4 100%);
+            color: #2e7d32;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .service-status {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #4caf50;
+        }
+
+        .status-offline {
+            background: #f44336;
+        }
+
+        .watson-insights {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .watson-insights h4 {
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+
+        .insight-item {
+            background: rgba(255,255,255,0.7);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+
+            .nutrition-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .meal-plan {
+                grid-template-columns: 1fr;
+            }
+
+            .nutrition-breakdown {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nutrition-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .nutrition-breakdown {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥗 SmartNutri AI</h1>
+            <p>Your Intelligent Personal Nutrition Assistant</p>
+            <p class="subtitle">Powered by IBM Watson AI Services</p>
+            <div class="service-status" id="service-status">
+                <div id="service-indicators">Checking services...</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>👤 Personal Profile</h2>
+                <div class="input-group">
+                    <label for="age">Age *</label>
+                    <input type="number" id="age" placeholder="Enter your age" min="1" max="120" required>
+                </div>
+                <div class="input-group">
+                    <label for="gender">Gender *</label>
+                    <select id="gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="height">Height (cm) *</label>
+                    <input type="number" id="height" placeholder="Enter height in cm" min="100" max="250" required>
+                </div>
+                <div class="input-group">
+                    <label for="weight">Weight (kg) *</label>
+                    <input type="number" id="weight" placeholder="Enter weight in kg" min="30" max="300" required>
+                </div>
+                <div class="input-group">
+                    <label for="activity">Activity Level *</label>
+                    <select id="activity" required>
+                        <option value="">Select Activity Level</option>
+                        <option value="sedentary">Sedentary (little/no exercise)</option>
+                        <option value="light">Light (light exercise 1-3 days/week)</option>
+                        <option value="moderate">Moderate (moderate exercise 3-5 days/week)</option>
+                        <option value="active">Active (hard exercise 6-7 days/week)</option>
+                        <option value="very-active">Very Active (very hard exercise, physical job)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🎯 Health Goals & Preferences</h2>
+                <div class="input-group">
+                    <label for="goal">Primary Goal</label>
+                    <select id="goal">
+                        <option value="">Select Your Goal</option>
+                        <option value="weight-loss">Weight Loss</option>
+                        <option value="weight-gain">Weight Gain</option>
+                        <option value="muscle-gain">Muscle Gain</option>
+                        <option value="maintenance">Maintain Current Weight</option>
+                        <option value="health">General Health</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="diet-type">Diet Type</label>
+                    <select id="diet-type">
+                        <option value="">Select Diet Type</option>
+                        <option value="balanced">Balanced Diet</option>
+                        <option value="vegetarian">Vegetarian</option>
+                        <option value="vegan">Vegan</option>
+                        <option value="keto">Ketogenic</option>
+                        <option value="paleo">Paleo</option>
+                        <option value="mediterranean">Mediterranean</option>
+                        <option value="low-carb">Low Carb</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Health Conditions</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="diabetes" value="diabetes">
+                            <label for="diabetes">Diabetes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="hypertension" value="hypertension">
+                            <label for="hypertension">Hypertension</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="heart-disease" value="heart-disease">
+                            <label for="heart-disease">Heart Disease</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="high-cholesterol" value="high-cholesterol">
+                            <label for="high-cholesterol">High Cholesterol</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="allergies">Food Allergies/Intolerances</label>
+                    <textarea id="allergies" rows="3" placeholder="List any food allergies or intolerances..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🍽 Food Analysis & Meal Planning</h2>
+            <div class="input-group">
+                <label for="food-input">Describe your current meal or food item</label>
+                <textarea id="food-input" rows="3" placeholder="E.g., 'Grilled chicken breast with quinoa and steamed broccoli' or 'Large pizza slice with pepperoni' or 'Greek yogurt with berries and almonds'"></textarea>
+            </div>
+            <button class="btn" id="analyze-btn" onclick="handleButtonClick()">
+                🚀 Generate Personalized Nutrition Plan
+            </button>
+        </div>
+
+        <!-- Watson Assistant Chat Section -->
+        <div class="card">
+            <h2>🤖 AI Nutrition Chat Assistant</h2>
+            <div class="chat-container" id="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="assistant-message">
+                        <div class="message-header">AI Assistant:</div>
+                        Hello! I'm your nutrition assistant powered by IBM Watson. Ask me anything about nutrition, meal planning, healthy eating habits, or specific dietary questions!
+                    </div>
+                </div>
+                <div class="typing-indicator" id="typing-indicator">
+                    <div class="message-header">AI Assistant:</div>
+                    Thinking...
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Ask me about nutrition..." onkeydown="handleChatKeyPress(event)">
+                    <button class="chat-btn" onclick="sendChatMessage()" id="chat-send-btn">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section" id="results">
+            <h2>📊 Your Personalized Nutrition Analysis</h2>
+            
+            <div class="nutrition-stats" id="nutrition-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="calories">2000</div>
+                    <div class="stat-label">Daily Calories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="protein">150g</div>
+                    <div class="stat-label">Protein</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="carbs">250g</div>
+                    <div class="stat-label">Carbs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="fat">67g</div>
+                    <div class="stat-label">Fat</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="fiber">25g</div>
+                    <div class="stat-label">Fiber</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="bmi">22.5</div>
+                    <div class="stat-label">BMI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="water">2.5L</div>
+                    <div class="stat-label">Water</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="bmr">1800</div>
+                    <div class="stat-label">BMR</div>
+                </div>
+            </div>
+
+            <div class="food-analysis" id="food-analysis" style="display: none;">
+                <h3>🔍 Watson AI Food Analysis</h3>
+                <div id="analysis-content"></div>
+            </div>
+
+            <div class="meal-plan" id="meal-plan">
+                <div class="meal-card">
+                    <h3>🌅 Breakfast</h3>
+                    <div class="meal-item" id="breakfast">Loading...</div>
+                </div>
+                <div class="meal-card">
+                    <h3>🌞 Lunch</h3>
+                    <div class="meal-item" id="lunch">Loading...</div>
+                </div>
+                <div class="meal-card">
+                    <h3>🌙 Dinner</h3>
+                    <div class="meal-item" id="dinner">Loading...</div>
+                </div>
+                <div class="meal-card">
+                    <h3>🍎 Snacks</h3>
+                    <div class="meal-item" id="snacks">Loading...</div>
+                </div>
+            </div>
+
+            <div class="recommendations" id="recommendations">
+                <h3>💡 Smart Recommendations</h3>
+                <div id="recommendations-content">
+                    <div class="recommendation-item">
+                        <strong>Hydration:</strong> Aim for 8-10 glasses of water daily based on your activity level.
+                    </div>
+                    <div class="recommendation-item">
+                        <strong>Meal Timing:</strong> Space your meals 3-4 hours apart for optimal metabolism.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let currentSessionId = null;
+
+        // Check service status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkServiceStatus();
+            addInputAnimations();
+        });
+
+        function checkServiceStatus() {
+            // Since we're using fallback mode, show offline status
+            document.getElementById('service-indicators').innerHTML = 
+                '<span class="status-indicator status-offline"></span>Running in Offline Mode - Using Built-in Calculations';
+        }
+
+        function addInputAnimations() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.style.transform = 'scale(1.02)';
+                });
+                input.addEventListener('blur', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        }
+
+        // Watson Assistant Chat Functions
+        function sendChatMessage() {
+            const chatInput = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('chat-send-btn');
+            const message = chatInput.value.trim();
+            
+            if (!message) return;
+
+            // Disable input and button
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+
+            // Add user message to chat
+            addMessageToChat(message, 'user');
+            chatInput.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Simulate AI response with fallback responses
+            setTimeout(() => {
+                const responses = [
+                    "I'm currently running in offline mode, but I can still help! For nutrition questions, try using the main form to generate your personalized plan.",
+                    "Great question! While I can't access Watson services right now, the nutrition calculator above can provide detailed meal plans and recommendations.",
+                    "I'd love to help with that! The form above can analyze your nutritional needs and create a custom meal plan based on your goals.",
+                    "That's an interesting nutrition question! Try filling out your profile above to get personalized recommendations and meal suggestions."
+                ];
+                
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                addMessageToChat(randomResponse, 'assistant');
+                
+                hideTypingIndicator();
+                // Re-enable input and button
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send';
+                chatInput.focus();
+            }, 1500);
+        }
+
+        function addMessageToChat(message, sender) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = sender === 'user' ? 'user-message' : 'assistant-message';
+            
+            const headerText = sender === 'user' ? 'You:' : 'AI Assistant:';
+            messageDiv.innerHTML = `
+                <div class="message-header">${headerText}</div>
+                <div>${message}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.style.display = 'block';
+            
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.style.display = 'none';
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        }
+
+        async function generateNutritionPlan() {
+            console.log('🚀 Generate nutrition plan clicked!');
+            
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const resultsSection = document.getElementById('results');
+            
+            // Validate required fields
+            const requiredFields = ['age', 'gender', 'height', 'weight', 'activity'];
+            const missingFields = [];
+            
+            requiredFields.forEach(field => {
+                const element = document.getElementById(field);
+                const value = element ? element.value.trim() : '';
+                console.log('✅ Field ${field}: "${value}"');
+                if (!value) {
+                    missingFields.push(field);
+                }
+            });
+            
+            if (missingFields.length > 0) {
+                console.log('❌ Missing required fields:', missingFields);
+                showError('Please fill in these required fields: ${missingFields.join(', ')}');
+                return;
+            }
+
+            console.log('✅ All required fields filled, generating plan...');
+
+            // Disable button and show loading
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '<div class="loading-spinner"></div> Generating Your Plan...';
+
+            try {
+                // Collect form data
+                const formData = {
+                    age: parseInt(document.getElementById('age').value),
+                    gender: document.getElementById('gender').value,
+                    height: parseInt(document.getElementById('height').value),
+                    weight: parseInt(document.getElementById('weight').value),
+                    activity_level: document.getElementById('activity').value,
+                    goal: document.getElementById('goal').value || 'health',
+                    diet_type: document.getElementById('diet-type').value || 'balanced',
+                    health_conditions: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+                    allergies: document.getElementById('allergies').value,
+                    food_input: document.getElementById('food-input').value
+                };
+
+                console.log('📊 Form data collected:', formData);
+                console.log('🌐 Sending request to server...');
+
+                // Try to connect to your Python server first
+                const response = await fetch('${API_BASE_URL}/nutrition-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    console.log('✅ Server responded successfully');
+                    const nutritionData = await response.json();
+                    console.log('📈 Server nutrition data:', nutritionData);
+                    
+                    // Display results from server
+                    displayResults(nutritionData);
+                    
+                    // Show results section
+                    resultsSection.style.display = 'block';
+                    console.log('📋 Results section displayed');
+                    
+                    // Scroll to results
+                    setTimeout(() => {
+                        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                    
+                    showSuccess('🎉 Your personalized nutrition plan is ready!');
+                } else {
+                    throw new Error('Server error: ${response.status}');
+                }
+
+            } catch (error) {
+                console.log('⚠ Server connection failed, using fallback calculations:', error.message);
+                
+                // Fallback to local calculations if server is not available
+                try {
+                    const formData = {
+                        age: parseInt(document.getElementById('age').value),
+                        gender: document.getElementById('gender').value,
+                        height: parseInt(document.getElementById('height').value),
+                        weight: parseInt(document.getElementById('weight').value),
+                        activity_level: document.getElementById('activity').value,
+                        goal: document.getElementById('goal').value || 'health',
+                        diet_type: document.getElementById('diet-type').value || 'balanced',
+                        health_conditions: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+                        allergies: document.getElementById('allergies').value,
+                        food_input: document.getElementById('food-input').value
+                    };
+
+                    const nutritionData = generateFallbackNutritionPlan(formData);
+                    console.log('📈 Fallback nutrition data:', nutritionData);
+
+                    // Display results
+                    displayResults(nutritionData);
+                    
+                    // Show results section
+                    resultsSection.style.display = 'block';
+                    console.log('📋 Results section displayed');
+                    
+                    // Scroll to results
+                    setTimeout(() => {
+                        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                    
+                    showSuccess('🎉 Your personalized nutrition plan is ready! (Using offline calculations)');
+                    
+                } catch (fallbackError) {
+                    console.error('❌ Error in fallback calculations:', fallbackError);
+                    showError('Error generating plan: ${fallbackError.message}');
+                }
+            } finally {
+                // Re-enable button
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '🚀 Generate Personalized Nutrition Plan';
+                console.log('✅ Button re-enabled');
+            }
+        }
+
+        // Fallback nutrition calculation when backend is not available
+        function generateFallbackNutritionPlan(formData) {
+            // Calculate BMR using Mifflin-St Jeor Equation
+            let bmr;
+            if (formData.gender === 'male') {
+                bmr = Math.round(10 * formData.weight + 6.25 * formData.height - 5 * formData.age + 5);
+            } else {
+                bmr = Math.round(10 * formData.weight + 6.25 * formData.height - 5 * formData.age - 161);
+            }
+
+            // Activity multipliers
+            const activityMultipliers = {
+                'sedentary': 1.2,
+                'light': 1.375,
+                'moderate': 1.55,
+                'active': 1.725,
+                'very-active': 1.9
+            };
+
+            const dailyCalories = Math.round(bmr * (activityMultipliers[formData.activity_level] || 1.2));
+
+            // Calculate BMI
+            const heightInMeters = formData.height / 100;
+            const bmi = (formData.weight / (heightInMeters * heightInMeters)).toFixed(1);
+            
+            let bmiCategory;
+            if (bmi < 18.5) bmiCategory = 'Underweight';
+            else if (bmi < 25) bmiCategory = 'Normal';
+            else if (bmi < 30) bmiCategory = 'Overweight';
+            else bmiCategory = 'Obese';
+
+            // Calculate macros (example ratios)
+            const proteinCalories = dailyCalories * 0.25;
+            const carbCalories = dailyCalories * 0.45;
+            const fatCalories = dailyCalories * 0.30;
+
+            const macros = {
+                protein: Math.round(proteinCalories / 4),
+                carbs: Math.round(carbCalories / 4),
+                fat: Math.round(fatCalories / 9)
+            };
+
+            // Generate meal plan based on diet type and preferences
+            const mealPlans = {
+                'vegetarian': {
+                    breakfast: 'Greek yogurt with berries, granola, and almonds (350 cal)',
+                    lunch: 'Quinoa Buddha bowl with roasted vegetables and tahini dressing (450 cal)',
+                    dinner: 'Lentil curry with brown rice and steamed broccoli (500 cal)',
+                    snacks: 'Apple with almond butter, herbal tea (200 cal)'
+                },
+                'vegan': {
+                    breakfast: 'Oatmeal with banana, chia seeds, and plant milk (320 cal)',
+                    lunch: 'Chickpea salad wrap with mixed greens (420 cal)',
+                    dinner: 'Tofu stir-fry with quinoa and mixed vegetables (480 cal)',
+                    snacks: 'Mixed nuts and fresh fruit (180 cal)'
+                },
+                'keto': {
+                    breakfast: 'Scrambled eggs with avocado and spinach (400 cal)',
+                    lunch: 'Grilled chicken salad with olive oil dressing (450 cal)',
+                    dinner: 'Salmon with asparagus and cauliflower rice (500 cal)',
+                    snacks: 'Cheese and macadamia nuts (250 cal)'
+                },
+                'balanced': {
+                    breakfast: 'Whole grain toast with avocado and poached egg (380 cal)',
+                    lunch: 'Grilled chicken with quinoa and roasted vegetables (470 cal)',
+                    dinner: 'Baked fish with sweet potato and green beans (520 cal)',
+                    snacks: 'Greek yogurt with berries (150 cal)'
+                }
+            };
+
+            const selectedMealPlan = mealPlans[formData.diet_type] || mealPlans['balanced'];
+
+            // Generate recommendations based on goals and health conditions
+            const recommendations = [];
+            
+            if (formData.goal === 'weight-loss') {
+                recommendations.push({
+                    title: 'Calorie Deficit',
+                    text: 'Aim for a 500-calorie deficit daily for healthy weight loss of 1-2 lbs per week.'
+                });
+            } else if (formData.goal === 'weight-gain') {
+                recommendations.push({
+                    title: 'Calorie Surplus',
+                    text: 'Add 300-500 calories above maintenance for healthy weight gain.'
+                });
+            }
+
+            if (formData.health_conditions.includes('diabetes')) {
+                recommendations.push({
+                    title: 'Blood Sugar Management',
+                    text: 'Focus on complex carbohydrates and pair carbs with protein or healthy fats.'
+                });
+            }
+
+            if (formData.health_conditions.includes('hypertension')) {
+                recommendations.push({
+                    title: 'Sodium Reduction',
+                    text: 'Limit sodium intake to less than 2,300mg daily. Use herbs and spices for flavor.'
+                });
+            }
+
+            recommendations.push({
+                title: 'Hydration',
+                text: 'Drink ${Math.round(formData.weight * 0.035)}L of water daily based on your body weight.'
+            });
+
+            // Analyze food input if provided
+            let foodAnalysis = null;
+            if (formData.food_input && formData.food_input.trim()) {
+                foodAnalysis = analyzeFoodInput(formData.food_input);
+            }
+
+            return {
+                daily_calories: dailyCalories,
+                bmr: bmr,
+                bmi: parseFloat(bmi),
+                bmi_category: bmiCategory,
+                macros: macros,
+                fiber_needs: Math.round(dailyCalories / 1000 * 14),
+                water_needs: Math.round(formData.weight * 0.035 * 10) / 10,
+                meal_plan: selectedMealPlan,
+                recommendations: recommendations,
+                food_analysis: foodAnalysis
+            };
+        }
+
+        // Simple food analysis fallback
+        function analyzeFoodInput(foodInput) {
+            const foodText = foodInput.toLowerCase();
+            
+            // Simple keyword-based analysis
+            let estimatedCalories = 300; // Base estimate
+            let protein = 15, carbs = 30, fat = 10, fiber = 5, sodium = 400;
+
+            // Adjust based on keywords
+            if (foodText.includes('pizza')) {
+                estimatedCalories = 450;
+                protein = 18;
+                carbs = 45;
+                fat = 18;
+                sodium = 800;
+            } else if (foodText.includes('salad')) {
+                estimatedCalories = 200;
+                protein = 8;
+                carbs = 15;
+                fat = 12;
+                fiber = 8;
+                sodium = 200;
+            } else if (foodText.includes('chicken')) {
+                estimatedCalories = 350;
+                protein = 35;
+                carbs = 5;
+                fat = 15;
+                sodium = 300;
+            } else if (foodText.includes('rice') || foodText.includes('quinoa')) {
+                estimatedCalories = 320;
+                protein = 12;
+                carbs = 58;
+                fat = 3;
+                fiber = 6;
+            }
+
+            const matchedFoods = [];
+            const commonFoods = ['chicken', 'rice', 'quinoa', 'broccoli', 'salad', 'pizza', 'yogurt', 'berries', 'almonds'];
+            commonFoods.forEach(food => {
+                if (foodText.includes(food)) {
+                    matchedFoods.push(food);
+                }
+            });
+
+            return {
+                nutrition: {
+                    calories: estimatedCalories,
+                    protein: protein,
+                    carbs: carbs,
+                    fat: fat,
+                    fiber: fiber,
+                    sodium: sodium
+                },
+                analysis: 'This meal appears to contain approximately ${estimatedCalories} calories with a good balance of macronutrients.',
+                matched_foods: matchedFoods,
+                recommendations: [
+                    'Consider adding more vegetables for extra nutrients and fiber',
+                    'Ensure adequate protein intake for muscle maintenance',
+                    'Stay hydrated with water throughout the day'
+                ]
+            };
+        }
+
+        function displayResults(data) {
+            // Update nutrition stats
+            document.getElementById('calories').textContent = data.daily_calories;
+            document.getElementById('protein').textContent = data.macros.protein + 'g';
+            document.getElementById('carbs').textContent = data.macros.carbs + 'g';
+            document.getElementById('fat').textContent = data.macros.fat + 'g';
+            document.getElementById('fiber').textContent = data.fiber_needs + 'g';
+            document.getElementById('bmi').textContent = data.bmi + ' (' + data.bmi_category + ')';
+            document.getElementById('water').textContent = data.water_needs + 'L';
+            document.getElementById('bmr').textContent = data.bmr;
+
+            // Update meal plan
+            if (data.meal_plan) {
+                document.getElementById('breakfast').textContent = data.meal_plan.breakfast || 'No recommendation available';
+                document.getElementById('lunch').textContent = data.meal_plan.lunch || 'No recommendation available';
+                document.getElementById('dinner').textContent = data.meal_plan.dinner || 'No recommendation available';
+                document.getElementById('snacks').textContent = data.meal_plan.snacks || 'No recommendation available';
+            }
+
+            // Display food analysis if available
+            if (data.food_analysis) {
+                const analysisSection = document.getElementById('food-analysis');
+                const analysisContent = document.getElementById('analysis-content');
+                
+                const nutrition = data.food_analysis.nutrition;
+                let analysisHTML = `
+                    <div class="nutrition-breakdown">
+                        <div class="nutrition-item">
+                            <strong>${nutrition.calories}</strong>
+                            <span>Calories</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <strong>${nutrition.protein}g</strong>
+                            <span>Protein</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <strong>${nutrition.carbs}g</strong>
+                            <span>Carbs</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <strong>${nutrition.fat}g</strong>
+                            <span>Fat</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <strong>${nutrition.fiber}g</strong>
+                            <span>Fiber</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <strong>${nutrition.sodium}mg</strong>
+                            <span>Sodium</span>
+                        </div>
+                    </div>
+                    <p><strong>Analysis:</strong> ${data.food_analysis.analysis}</p>
+                `;
+
+                if (data.food_analysis.matched_foods && data.food_analysis.matched_foods.length > 0) {
+                    analysisHTML += <p><strong>Detected Foods:</strong> ${data.food_analysis.matched_foods.join(', ')}</p>;
+                }
+
+                if (data.food_analysis.recommendations && data.food_analysis.recommendations.length > 0) {
+                    analysisHTML += '<div style="margin-top: 15px;"><strong>Food-Specific Recommendations:</strong><ul>';
+                    data.food_analysis.recommendations.forEach(rec => {
+                        analysisHTML += <li>${rec}</li>;
+                    });
+                    analysisHTML += '</ul></div>';
+                }
+
+                // Add Watson insights if available
+                if (data.food_analysis.watson_insights) {
+                    const insights = data.food_analysis.watson_insights;
+                    if (insights.concepts && insights.concepts.length > 0) {
+                        analysisHTML += '<div class="watson-insights">';
+                        analysisHTML += '<h4>🧠 Watson AI Insights:</h4>';
+                        insights.concepts.forEach(concept => {
+                            analysisHTML += <div class="insight-item">${concept.text} (Relevance: ${Math.round(concept.relevance * 100)}%)</div>;
+                        });
+                        analysisHTML += '</div>';
+                    }
+                }
+
+                analysisContent.innerHTML = analysisHTML;
+                analysisSection.style.display = 'block';
+            }
+
+            // Update recommendations
+            if (data.recommendations && data.recommendations.length > 0) {
+                const recommendationsContent = document.getElementById('recommendations-content');
+                recommendationsContent.innerHTML = data.recommendations.map(rec => 
+                    `<div class="recommendation-item">
+                        <strong>${rec.title}:</strong> ${rec.text}
+                    </div>`
+                ).join('');
+            }
+        }
+
+        function showError(message) {
+            // Remove existing messages
+            const existingMessages = document.querySelectorAll('.error, .success');
+            existingMessages.forEach(msg => msg.remove());
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = '<strong>Error:</strong> ${message}';
+            
+            const container = document.querySelector('.container');
+            container.appendChild(errorDiv);
+            
+            errorDiv.scrollIntoView({ behavior: 'smooth' });
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            // Remove existing messages
+            const existingMessages = document.querySelectorAll('.error, .success');
+            existingMessages.forEach(msg => msg.remove());
+
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.innerHTML = '<strong>Success:</strong> ${message}';
+            
+            const container = document.querySelector('.container');
+            container.appendChild(successDiv);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.remove();
+                }
+            }, 3000);
+        }
+
+        // Add some sample chat suggestions
+        function addChatSuggestion(suggestion) {
+            const chatInput = document.getElementById('chat-input');
+            chatInput.value = suggestion;
+            chatInput.focus();
+        }
+
+        // Simple button click handler
+        function handleButtonClick() {
+            console.log('🚀 Button clicked - starting nutrition plan generation');
+            generateNutritionPlan();
+        }
+
+        // Add quick chat buttons (optional)
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Page loaded successfully');
+            
+            const chatContainer = document.getElementById('chat-container');
+            const suggestionsDiv = document.createElement('div');
+            suggestionsDiv.style.cssText = 'padding: 10px; background: #f8f9fa; border-top: 1px solid #e1e5e9; display: flex; gap: 10px; flex-wrap: wrap;';
+            
+            const suggestions = [
+                'What are good protein sources?',
+                'How much water should I drink?',
+                'Help me lose weight',
+                'Meal planning tips'
+            ];
+            
+            suggestions.forEach(suggestion => {
+                const btn = document.createElement('button');
+                btn.textContent = suggestion;
+                btn.style.cssText = 'padding: 5px 10px; border: 1px solid #ddd; border-radius: 15px; background: white; cursor: pointer; font-size: 12px;';
+                btn.onclick = () => addChatSuggestion(suggestion);
+                suggestionsDiv.appendChild(btn);
+            });
+            
+            chatContainer.appendChild(suggestionsDiv);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'969720f660263c22',t:'MTc1NDIzNzg4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
